@@ -1,0 +1,155 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Advisor Query Tracker{% endblock %}</title>
+    <style>
+        /* ── Reset & Base ──────────────────────────────── */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: #f0f2f5; color: #1a1a2e; line-height: 1.6;
+        }
+        a { color: #0066cc; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+
+        /* ── Navigation ────────────────────────────────── */
+        nav {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            padding: 0 2rem; display: flex; align-items: center;
+            justify-content: space-between; height: 60px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+        }
+        nav .logo { color: #fff; font-size: 1.25rem; font-weight: 700; letter-spacing: 0.5px; }
+        nav .logo span { color: #4fc3f7; }
+        nav .nav-links { display: flex; gap: 0.25rem; }
+        nav .nav-links a {
+            color: #b0bec5; padding: 0.5rem 1rem; border-radius: 6px;
+            font-size: 0.9rem; font-weight: 500; transition: all 0.2s;
+        }
+        nav .nav-links a:hover, nav .nav-links a.active {
+            color: #fff; background: rgba(255,255,255,0.1); text-decoration: none;
+        }
+
+        /* ── Main Container ────────────────────────────── */
+        .container { max-width: 1100px; margin: 2rem auto; padding: 0 1.5rem; }
+
+        /* ── Flash Messages ────────────────────────────── */
+        .flash { padding: 0.85rem 1.25rem; border-radius: 8px; margin-bottom: 1.25rem; font-weight: 500; }
+        .flash.success { background: #e8f5e9; color: #2e7d32; border-left: 4px solid #43a047; }
+        .flash.error   { background: #fce4ec; color: #c62828; border-left: 4px solid #e53935; }
+
+        /* ── Cards ─────────────────────────────────────── */
+        .card {
+            background: #fff; border-radius: 12px; padding: 1.75rem;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.06); margin-bottom: 1.5rem;
+        }
+        .card h2 { font-size: 1.35rem; margin-bottom: 1rem; color: #1a1a2e; }
+
+        /* ── Forms ─────────────────────────────────────── */
+        .form-group { margin-bottom: 1.15rem; }
+        .form-group label { display: block; font-weight: 600; margin-bottom: 0.35rem; font-size: 0.9rem; color: #37474f; }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%; padding: 0.65rem 0.85rem; border: 1.5px solid #cfd8dc;
+            border-radius: 8px; font-size: 0.95rem; font-family: inherit;
+            transition: border-color 0.2s;
+        }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            outline: none; border-color: #42a5f5; box-shadow: 0 0 0 3px rgba(66,165,245,0.15);
+        }
+        .form-group textarea { min-height: 120px; resize: vertical; }
+        .form-group .hint { font-size: 0.8rem; color: #78909c; margin-top: 0.25rem; }
+
+        /* ── Buttons ───────────────────────────────────── */
+        .btn {
+            display: inline-block; padding: 0.6rem 1.5rem; border: none;
+            border-radius: 8px; font-size: 0.9rem; font-weight: 600;
+            cursor: pointer; transition: all 0.2s; font-family: inherit;
+        }
+        .btn-primary { background: #1565c0; color: #fff; }
+        .btn-primary:hover { background: #0d47a1; }
+        .btn-success { background: #2e7d32; color: #fff; }
+        .btn-success:hover { background: #1b5e20; }
+        .btn-outline { background: transparent; color: #1565c0; border: 1.5px solid #1565c0; }
+        .btn-outline:hover { background: #e3f2fd; text-decoration: none; }
+        .btn-sm { padding: 0.35rem 0.85rem; font-size: 0.82rem; }
+
+        /* ── Badges ────────────────────────────────────── */
+        .badge {
+            display: inline-block; padding: 0.2rem 0.65rem; border-radius: 20px;
+            font-size: 0.75rem; font-weight: 600; letter-spacing: 0.3px;
+        }
+        .badge-open       { background: #fff3e0; color: #e65100; }
+        .badge-inprogress  { background: #e3f2fd; color: #1565c0; }
+        .badge-resolved    { background: #e8f5e9; color: #2e7d32; }
+        .badge-low         { background: #f3e5f5; color: #7b1fa2; }
+        .badge-medium      { background: #fff8e1; color: #f57f17; }
+        .badge-high        { background: #fbe9e7; color: #d84315; }
+        .badge-critical    { background: #ffebee; color: #b71c1c; }
+
+        /* ── Table ─────────────────────────────────────── */
+        .data-table { width: 100%; border-collapse: collapse; }
+        .data-table th {
+            text-align: left; padding: 0.75rem 1rem; background: #f5f7fa;
+            font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.5px;
+            color: #546e7a; border-bottom: 2px solid #e0e0e0;
+        }
+        .data-table td { padding: 0.75rem 1rem; border-bottom: 1px solid #eceff1; font-size: 0.9rem; }
+        .data-table tr:hover { background: #f5f9ff; }
+
+        /* ── Stat Cards ────────────────────────────────── */
+        .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+        .stat-card {
+            background: #fff; border-radius: 12px; padding: 1.25rem;
+            text-align: center; box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+        }
+        .stat-card .number { font-size: 2rem; font-weight: 700; }
+        .stat-card .label  { font-size: 0.85rem; color: #78909c; margin-top: 0.2rem; }
+        .stat-total   .number { color: #1565c0; }
+        .stat-open    .number { color: #e65100; }
+        .stat-prog    .number { color: #0277bd; }
+        .stat-done    .number { color: #2e7d32; }
+
+        /* ── Tags ──────────────────────────────────────── */
+        .tag {
+            display: inline-block; background: #e8eaf6; color: #283593;
+            padding: 0.15rem 0.55rem; border-radius: 4px; font-size: 0.78rem;
+            margin: 0.15rem 0.1rem; font-weight: 500;
+        }
+
+        /* ── Utility ───────────────────────────────────── */
+        .text-muted { color: #90a4ae; font-size: 0.85rem; }
+        .mt-1  { margin-top: 0.5rem; }
+        .mt-2  { margin-top: 1rem; }
+        .mb-1  { margin-bottom: 0.5rem; }
+        .flex-between { display: flex; justify-content: space-between; align-items: center; }
+        .search-bar { display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: end; margin-bottom: 1.5rem; }
+        .search-bar .form-group { margin-bottom: 0; }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="logo">📋 Advisor <span>Query Tracker</span></div>
+        <div class="nav-links">
+            <a href="{{ url_for('index') }}" class="{% if request.endpoint == 'index' %}active{% endif %}">🏠 Home</a>
+            <a href="{{ url_for('submit') }}" class="{% if request.endpoint == 'submit' %}active{% endif %}">✏️ Submit</a>
+            <a href="{{ url_for('dashboard') }}" class="{% if request.endpoint == 'dashboard' %}active{% endif %}">📊 Dashboard</a>
+            <a href="{{ url_for('knowledge_base') }}" class="{% if request.endpoint == 'knowledge_base' %}active{% endif %}">📚 Knowledge Base</a>
+            <a href="{{ url_for('refresher') }}" class="{% if request.endpoint == 'refresher' %}active{% endif %}">📈 Refresher</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% for category, message in messages %}
+                <div class="flash {{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </div>
+</body>
+</html>
+
