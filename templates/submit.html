@@ -1,0 +1,46 @@
+
+{% extends "base.html" %}
+{% block title %}Submit Query — Advisor Query Tracker{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width:720px;">
+    <h2>✏️ Submit a New Query</h2>
+    <p class="text-muted mb-1">Ask the advisor a question. It will appear on the dashboard for review.</p>
+
+    <form method="POST" style="margin-top:1rem;">
+        <div class="form-group">
+            <label for="submitted_by">Your Name / Alias *</label>
+            <input type="text" id="submitted_by" name="submitted_by" placeholder="e.g. Alokesh" required>
+        </div>
+
+        <div class="form-group">
+            <label for="category">Category *</label>
+            <select id="category" name="category" required>
+                <option value="">— Select Category —</option>
+                {% for cat in categories %}
+                    <option value="{{ cat }}">{{ cat }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="subject">Subject / Title *</label>
+            <input type="text" id="subject" name="subject" placeholder="Brief title for your query" required>
+        </div>
+
+        <div class="form-group">
+            <label for="description">Description *</label>
+            <textarea id="description" name="description" placeholder="Describe your doubt in detail. Include any relevant context, SIM IDs, or examples." required></textarea>
+        </div>
+
+        <div class="form-group">
+            <label for="tags">Tags</label>
+            <input type="text" id="tags" name="tags" placeholder="e.g. warranty, escalation, policy (comma-separated)">
+            <div class="hint">Comma-separated keywords to help with search &amp; discovery</div>
+        </div>
+
+        <button type="submit" class="btn btn-primary">🚀 Submit Query</button>
+    </form>
+</div>
+{% endblock %}
+
