@@ -1,0 +1,135 @@
+
+{% extends "base.html" %}
+{% block title %}Query #{{ query.id }} — Advisor Query Tracker{% endblock %}
+
+{% block content %}
+<a href="{{ url_for('dashboard') }}" style="font-size:0.9rem;">&larr; Back to Dashboard</a>
+
+<div class="card" style="margin-top:1rem;">
+    <div class="flex-between mb-1">
+        <h2 style="margin-bottom:0;">#{{ query.id }} — {{ query.subject }}</h2>
+        <span class="badge {% if query.status == 'Open' %}badge-open{% elif query.status == 'In Progress' %}badge-inprogress{% else %}badge-resolved{% endif %}">
+            {{ query.status }}
+        </span>
+    </div>
+
+    <div style="display:flex; gap:2rem; flex-wrap:wrap; margin-bottom:1rem;">
+        <div><strong>Submitted by:</strong> {{ query.submitted_by }}</div>
+        <div><strong>Category:</strong> {{ query.category }}</div>
+        <div><strong>Priority:</strong> <span class="badge badge-{{ query.priority|lower }}">{{ query.priority }}</span></div>
+        <div><strong>Date:</strong> {{ query.created_at }}</div>
+    </div>
+
+    <!-- Tags -->
+    {% if query.tags %}
+    <div class="mb-1">
+        <strong>Tags:</strong>
+        {% for tag in query.tags.split(',') %}
+            <span class="tag">{{ tag.strip() }}</span>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Description -->
+    <div style="background:#f5f7fa; padding:1rem; border-radius:8px; margin-top:0.75rem;">
+        <strong>Description:</strong>
+        <p style="margin-top:0.5rem; white-space:pre-wrap;">{{ query.description }}</p>
+    </div>
+
+    <!-- Advisor Response (if exists) -->
+    {% if query.advisor_response %}
+    <div style="background:#e8f5e9; padding:1rem; border-radius:8px; margin-top:1rem; border-left:4px solid #43a047;">
+        <strong>✅ Advisor Response:</strong>
+        <p style="margin-top:0.5rem; white-space:pre-wrap;">{{ query.advisor_response }}</p>
+    </div>
+    {% endif %}
+
+    <!-- Reference Links -->
+    {% if query.reference_links %}
+    <div class="mt-1">
+        <strong>📎 Reference Links:</strong>
+        <p style="white-space:pre-wrap; margin-top:0.25rem;">{{ query.reference_links }}</p>
+    </div>
+    {% endif %}
+
+    {% if query.resolved_at %}
+    <div class="mt-1 text-muted">Resolved on: {{ query.resolved_at }}</div>
+    {% endif %}
+</div>
+
+<!-- ── Advisor Response Form (only if not resolved) ─────────── -->
+{% if query.status != 'Resolved' %}
+<div class="card">
+    <h2>💬 Respond to this Query</h2>
+    <form method="POST">
+        <input type="hidden" name="action" value="respond">
+
+        <div class="form-group">
+            <label for="advisor_response">Advisor Response</label>
+            <textarea id="advisor_response" name="advisor_response" placeholder="Write your answer here...">{{ query.advisor_response }}</textarea>
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+            <div class="form-group">
+                <label for="priority">Set Priority</label>
+                <select id="priority" name="priority">
+                    {% for p in priorities %}
+                        <option value="{{ p }}" {% if p == query.priority %}selected{% endif %}>{{ p }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="status">Update Status</label>
+                <select id="status" name="status">
+                    {% for s in statuses %}
+                        <option value="{{ s }}" {% if s == query.status %}selected{% endif %}>{{ s }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="reference_links">Reference Links</label>
+            <textarea id="reference_links" name="reference_links" style="min-height:60px;" placeholder="Paste helpful links, one per line">{{ query.reference_links }}</textarea>
+        </div>
+
+        <button type="submit" class="btn btn-success">💾 Save Response</button>
+    </form>
+</div>
+{% endif %}
+
+<!-- ── Follow-up Comments Thread ────────────────────────────── -->
+<div class="card">
+    <h2>💬 Follow-up Comments ({{ comments|length }})</h2>
+
+    {% if comments %}
+        {% for c in comments %}
+        <div style="background:#fafafa; padding:0.85rem 1rem; border-radius:8px; margin-bottom:0.75rem; border-left:3px solid #90a4ae;">
+            <div class="flex-between">
+                <strong>{{ c.author }}</strong>
+                <span class="text-muted">{{ c.created_at }}</span>
+            </div>
+            <p style="margin-top:0.35rem; white-space:pre-wrap;">{{ c.message }}</p>
+        </div>
+        {% endfor %}
+    {% else %}
+        <p class="text-muted">No comments yet.</p>
+    {% endif %}
+
+    <form method="POST" style="margin-top:1rem; padding-top:1rem; border-top:1px solid #eceff1;">
+        <input type="hidden" name="action" value="comment">
+        <div style="display:grid; grid-template-columns:1fr 2fr; gap:0.75rem; align-items:end;">
+            <div class="form-group">
+                <label for="author">Your Name</label>
+                <input type="text" id="author" name="author" placeholder="Name" required>
+            </div>
+            <div class="form-group">
+                <label for="message">Comment</label>
+                <input type="text" id="message" name="message" placeholder="Add a follow-up comment..." required>
+            </div>
+        </div>
+        <button type="submit" class="btn btn-outline btn-sm mt-1">Add Comment</button>
+    </form>
+</div>
+{% endblock %}
+
