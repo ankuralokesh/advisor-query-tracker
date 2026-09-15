@@ -1,0 +1,52 @@
+
+{% extends "base.html" %}
+{% block title %}Advisor Dashboard — Advisor Query Tracker{% endblock %}
+
+{% block content %}
+<div class="flex-between" style="margin-bottom:1.25rem;">
+    <h1 style="font-size:1.5rem;">📊 Advisor Dashboard</h1>
+    <span class="text-muted">{{ queries|length }} open / in-progress queries</span>
+</div>
+
+{% if queries %}
+<div class="card" style="padding:0; overflow:hidden;">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Subject</th>
+                <th>Submitted By</th>
+                <th>Category</th>
+                <th>Priority</th>
+                <th>Status</th>
+                <th>Date</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for q in queries %}
+            <tr>
+                <td>#{{ q.id }}</td>
+                <td style="max-width:280px;">{{ q.subject }}</td>
+                <td>{{ q.submitted_by }}</td>
+                <td>{{ q.category }}</td>
+                <td><span class="badge badge-{{ q.priority|lower }}">{{ q.priority }}</span></td>
+                <td>
+                    <span class="badge {% if q.status == 'Open' %}badge-open{% else %}badge-inprogress{% endif %}">
+                        {{ q.status }}
+                    </span>
+                </td>
+                <td class="text-muted">{{ q.created_at[:10] }}</td>
+                <td><a href="{{ url_for('query_detail', query_id=q.id) }}" class="btn btn-outline btn-sm">View</a></td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="card" style="text-align:center; padding:3rem;">
+    <p style="font-size:1.15rem; color:#78909c;">🎉 No open queries — all caught up!</p>
+</div>
+{% endif %}
+{% endblock %}
+
