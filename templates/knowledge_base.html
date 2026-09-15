@@ -1,0 +1,74 @@
+
+{% extends "base.html" %}
+{% block title %}Knowledge Base — Advisor Query Tracker{% endblock %}
+
+{% block content %}
+<h1 style="font-size:1.5rem; margin-bottom:1.25rem;">📚 Knowledge Base</h1>
+
+<!-- Search & Filter -->
+<div class="card">
+    <form method="GET" class="search-bar">
+        <div class="form-group" style="flex:1; min-width:200px;">
+            <label for="search">Search</label>
+            <input type="text" id="search" name="search" value="{{ search_term }}" placeholder="Search by keyword, tag, or subject...">
+        </div>
+        <div class="form-group" style="min-width:180px;">
+            <label for="category">Category</label>
+            <select id="category" name="category">
+                <option value="All">All Categories</option>
+                {% for cat in categories %}
+                    <option value="{{ cat }}" {% if cat == selected_category %}selected{% endif %}>{{ cat }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary">🔍 Search</button>
+        {% if search_term or selected_category != 'All' %}
+            <a href="{{ url_for('knowledge_base') }}" class="btn btn-outline">Clear</a>
+        {% endif %}
+    </form>
+</div>
+
+<p class="text-muted" style="margin-bottom:1rem;">{{ queries|length }} resolved queries found</p>
+
+{% if queries %}
+    {% for q in queries %}
+    <div class="card">
+        <div class="flex-between mb-1">
+            <h2 style="margin-bottom:0; font-size:1.15rem;">
+                <a href="{{ url_for('query_detail', query_id=q.id) }}">#{{ q.id }} — {{ q.subject }}</a>
+            </h2>
+            <span class="text-muted">{{ q.resolved_at[:10] if q.resolved_at else q.updated_at[:10] }}</span>
+        </div>
+
+        <div style="margin-bottom:0.5rem;">
+            <span class="badge badge-resolved">Resolved</span>
+            <span class="badge badge-{{ q.priority|lower }}">{{ q.priority }}</span>
+            <span style="color:#546e7a; font-size:0.85rem; margin-left:0.5rem;">{{ q.category }}</span>
+        </div>
+
+        {% if q.tags %}
+        <div class="mb-1">
+            {% for tag in q.tags.split(',') %}
+                <span class="tag">{{ tag.strip() }}</span>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <div style="background:#f5f7fa; padding:0.75rem 1rem; border-radius:6px;">
+            <strong>Q:</strong> {{ q.description[:200] }}{% if q.description|length > 200 %}...{% endif %}
+        </div>
+
+        {% if q.advisor_response %}
+        <div style="background:#e8f5e9; padding:0.75rem 1rem; border-radius:6px; margin-top:0.5rem; border-left:3px solid #43a047;">
+            <strong>A:</strong> {{ q.advisor_response[:300] }}{% if q.advisor_response|length > 300 %}...{% endif %}
+        </div>
+        {% endif %}
+    </div>
+    {% endfor %}
+{% else %}
+<div class="card" style="text-align:center; padding:3rem;">
+    <p style="font-size:1.1rem; color:#78909c;">No resolved queries found. Try a different search.</p>
+</div>
+{% endif %}
+{% endblock %}
+
